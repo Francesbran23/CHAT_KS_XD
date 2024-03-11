@@ -1,0 +1,182 @@
+.navbar {
+    margin-bottom: 0;
+}
+.messi {
+  font-size: 50px;
+  text-align: center; /* Alinea el texto a la izquierda */
+  transition: color 0.3s; /* Agrega una transición al cambio de color */
+}
+
+.messi:hover {
+  color: #EDC943; /* Cambia el color del texto al pasar el mouse */
+}
+
+
+@font-face {
+    font-family: 'MiFuente';
+    src: url('https://cdn.glitch.global/0c34c23e-dabb-44bc-8635-4b74c73e750a/NovaSquare-Regular.ttf?v=1701239513721') format('truetype');
+}
+
+body {
+    font-family: 'MiFuente', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+
+h1,
+h2 {
+    font-weight: bold;
+}
+
+p {
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.jumbotron {
+    background: #7b828f;
+    color: white;
+    text-align: center;
+}
+
+.jumbotron p {
+    color: white;
+    font-size: 26px;
+}
+
+.btn-primary {
+    color: #fff;
+    
+    border-color: white;
+    margin-bottom: 5px;
+}
+
+img,
+video,
+audio {
+    margin-top: 20px;
+    max-width: 80%;
+}
+
+.carlos {
+    margin-right: 20px;
+    border: none;
+    background: #06d6ac;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    transition: background .2s ease-in-out;
+  }
+  
+  .carlos:hover {
+    background: #0d977e;
+  }
+ 
+
+.pepe{
+    
+  box-shadow: inset #abacaf 0 0 0 2px;
+  border: 0;
+  background: rgba(0, 0, 0, 0);
+  appearance: none;
+  width: 190px;
+  position: relative;
+  border-radius: 3px;
+  padding: 9px 12px;
+  line-height: 1.4;
+  color: rgb(0, 0, 0);
+  font-size: 16px;
+  font-weight: 400;
+  height: 40px;
+  transition: all .2s ease;
+ }
+.pepe:hover{
+      box-shadow: 0 0 0 0 #fff inset, #1de9b6 0 0 0 2px;
+  }
+  :focus{
+      background: #fff;
+      outline: 0;
+      box-shadow: 0 0 0 0 #fff inset, #1de9b6 0 0 0 3px;
+  }
+
+button {
+  align-items: left;
+  border-radius: 5px;
+  background-color: #5ce19e;
+  border: none;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  padding: 16px;
+  width: 150px;
+  height: 50px;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 36px;
+  box-shadow: 0 10px 20px -8px rgba(0, 0, 0,.7);
+}
+
+button{
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
+
+button:after {
+  content: '»';
+  position: absolute;
+  opacity: 0;  
+  top: 14px;
+  right: -20px;
+  transition: 0.5s;
+}
+
+button:hover{
+  padding-right: 24px;
+  padding-left:8px;
+}
+
+button:hover:after {
+  opacity: 1;
+  right: 10px;
+}
+
+.cat{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.squid{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.fs{
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.container {
+    margin: 20px auto; /* Establece el margen superior e inferior en 20px y el margen izquierdo y derecho en auto */
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra para resaltar el contenedor */
+    display: flex; /* Utiliza el modelo de caja flexible (flexbox) */
+    flex-direction: column; /* Apila los elementos en columna */
+    align-items: center; /* Centra los elementos a lo largo del eje transversal (verticalmente) */
+    justify-content: center; /* Centra los elementos a lo largo del eje principal (horizontalmente) */
+}
+
+
+.col-6{
+  width: 600px; /* Ancho predeterminado de 300 píxeles */
+}
