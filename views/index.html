@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <title>Chat</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link href="css/styles.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,700" rel="stylesheet" type="text/css">
+    <style>
+        body {
+            background-color: #0b0909;
+            color: #000;
+            padding: 40px 0;
+        }
+
+        .dot {
+            height: 10px;
+            width: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #messages {
+            max-height: 470px;
+            overflow: auto;
+        }
+
+        #typing {
+            padding: 15px;
+        }
+
+        #typing p {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .chat-msg-item.its-me {
+            text-align: right;
+            background-color: rgb(255, 0, 0);
+        }
+
+        .chat-msg-item .chat-msg-nickname {
+            display: block;
+            height: 20px;
+            width: 20px;
+            background-color: #4cafaf;
+            font-size: 11px;
+            color: #fff;
+            font-weight: 700;
+            line-height: 20px;
+            text-align: center;
+            border-radius: 50%;
+        }
+
+        .chat-msg-item .chat-msg-msg {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+        $(function () {
+            // Requiere socker.io
+            var socket = io();
+            var timeout;
+            var chat_input = $('#m');
+            var chat_form = $('form');
+            var users_ele = $('#users');
+            var messages_ele = $('#messages');
+            var typing_ele = $('#typing');
+            var fileInput = document.getElementById('file');
+
+            var send_nickname = function () {
+              var nickname = prompt("INGRESA TU NOMBRE:", makeid(4));
+
+              if (nickname != null && nickname.length <= 8) {
+                  socket.emit('send-nickname', nickname);
+                  window.nickname = nickname;
+              } else {
+                  alert("Por favor, ingresa un nombre de usuario válido de hasta 8 caracteres.");
+                  send_nickname(); // Llamada recursiva para solicitar el nombre nuevamente.
+              }
+          }
+
+            function timeout_function() {
+                socket.emit('event-typing', false);
+            }
+
+            function makeid(length) {
+                var result = '';
+                var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                var charactersLength = characters.length;
+                for (var i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            }
+
+            // Conexión del socket
+            socket.on('connect', function () {
+                window.socket_id = socket.id;
+            });
+
+            // Enviar apodo
+            send_nickname();
+
+            // Obtener lista de usuarios en línea
+            socket.on('users-list', function (users) {
+                if (users.length) {
+                    users_ele.html('');
+                    for (var i = 0, l = users.length; i < l; ++i) {
+                        var _u = users[i];
+                        var _me = '';
+                        if (_u.id == window.socket_id) {
+                            _me += '(yo)'
+                        }
+                        var _html = '<li class="list-group-item user-item" data-id="' + _u.id + '"><span class="dot"></span> ' + _u.nickname + ' ' + _me + '</li>'
+                        users_ele.append(_html);
+                    }
+                }
+            });
+
+            // Establecer evento de escritura
+            chat_input.on('keyup', function () {
+                var _t = {
+                    id: window.socket_id,
+                    nickname: window.nickname
+                };
+                socket.emit('event-typing', _t);
+                clearTimeout(timeout);
+                timeout = setTimeout(timeout_function, 2000);
+            })
+
+
+            chat_form.submit(function (e) {
+                e.preventDefault(); // evita que la página se recargue
+
+                const formData = new FormData();
+                const file = fileInput.files[0];
+
+                if (file) {
+
+                    formData.append('audio', fileInput.files[0]);
+                    formData.append('message', chat_input.val());
+
+                    //Enviar solicitud POST al servidor
+                    fetch('/upload-audio', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log("Respuesta Del Servidor: ", data)
+                            console.log("Respuesta Del Servidor: ", data.message)
+                            console.log("Respuesta Del Servidor: ", data.audio_url)
+
+                            var _a = {
+                                id: window.socket_id,
+                                nickname: window.nickname,
+                                msg: data.message,
+                                audio: data.audio_url
+                            };
+                            socket.emit('chat-message', _a);
+                            chat_input.val('');
+                        })
+                        .catch(error => {
+                            console.error("Error al enviar datos al servidor:", error)
+                        })
+
+                } else {
+                    // Emitir mensaje de chat al servidor
+                    var _a = {
+                        id: window.socket_id,
+                        nickname: window.nickname,
+                        msg: chat_input.val()
+                    };
+                    socket.emit('chat-message', _a);
+                    chat_input.val('');
+                }
+                return false;
+            });
+
+            // Obtener escritura del servidor
+            socket.on('event-typing', function (res) {
+                typing_ele.html('');
+                var _html = '<p id="' + res.id + '">' + res.nickname + ' está escribiendo...</p>';
+                typing_ele.append(_html);
+            });
+
+            // Obtener mensaje de chat del servidor
+            socket.on('chat-message', function (res) {
+
+                // Eliminar elemento de escritura
+                typing_ele.find('#' + res.id).remove();
+                if (res.audio) {
+
+                    if (res.id == window.socket_id) {
+                        // soy yo
+                        var _html = '<li class="list-group-item chat-msg-item its-me">';
+                    } else {
+                        var _html = '<li class="list-group-item chat-msg-item">';
+                        _html += '<span class="chat-msg-nickname">' + res.nickname.toString().substr(0, 1).toUpperCase() + '</span>';
+                    }
+
+                    _html += '<span class="chat-msg-msg">' + res.msg + '<br>' + `<audio controls controlsList="nodownload" src="${res.audio}"></audio>` + '</span>';
+
+                } else {
+                    if (res.id == window.socket_id) {
+                        // soy yo
+                        var _html = '<li class="list-group-item chat-msg-item its-me">';
+                    } else {
+                        var _html = '<li class="list-group-item chat-msg-item">';
+                        _html += '<span class="chat-msg-nickname">' + res.nickname.toString().substr(0, 1).toUpperCase() + '</span>';
+                    }
+
+                    _html += '<span class="chat-msg-msg">' + res.msg + '</span>';
+                }
+
+
+
+                messages_ele.append(_html);
+            });
+        });
+    </script>
+
+    <p class="messi">KLANGSÖBA GLOBAL CHAT</p>
+    <div class="container">
+
+        <div class="row">
+            <div class="col-6">
+
+                <ul class="list-group mb-2" id="messages"></ul>
+
+                <form>
+                    <div class="form-group">
+                        <input type="text" name="m" id="m" value="" class="pepe" placeholder="Ingrese su Mensaje..."
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <input type="file" name="file" id="file" class="pepe" accept=".mp3, .wav" />
+                    </div>
+
+                    <button type="submit" class="button">Enviar</button>
+                </form>
+            </div>
+            <div class="col-6">
+                <ul class="list-group mb-2" id="users"></ul>
+                <div class="bg-primary text-white" id="typing"></div>
+            </div>
+        </div>
+        <img src="https://cdn.glitch.global/0c34c23e-dabb-44bc-8635-4b74c73e750a/movepotcat.gif?1701237234837"
+            alt="potcat" style="width:100px;height:100px;" class="cat">
+        <img src="https://cdn.glitch.global/0c34c23e-dabb-44bc-8635-4b74c73e750a/squidmoveche.gif?1701236998622"
+            alt="tanksquid" style="width:100px;height:100px;" class="squid">
+        <img src="https://cdn.glitch.global/0c34c23e-dabb-44bc-8635-4b74c73e750a/thumbnails%2Ffsforks.gif?1701236979304"
+            alt="faststern" style="width:200px;height:100px;" class="fs">
+
+    </div>
+
+</body>
+
+</html>
